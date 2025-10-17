@@ -1,8 +1,11 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #363062;
+  --background-secondary: #4D4C7D;
+  --foreground: #F5F5F5;
+  --foreground-secondary: #F99417;
+  --foreground-secondary-dark: #a35f0c;
 }
 
 @theme inline {
@@ -14,8 +17,11 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: #363062;
+    --background-secondary: #4D4C7D;
+    --foreground: #F5F5F5;
+    --foreground-secondary: #F99417;
+    --foreground-secondary-dark: #a35f0c;
   }
 }
 
@@ -23,4 +29,42 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+}
+
+.bg {
+  background-color: var(--background);
+}
+.bg2 {
+  background-color: var(--background-secondary);
+}
+.fg {
+  color: var(--foreground);
+}
+.fg2 {
+  color: var(--foreground-secondary);
+}
+
+.btn {
+  @apply bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded cursor-pointer;
+}
+.btn2 {
+  @apply text-white font-bold py-2 px-4 rounded cursor-pointer;
+  background-color: var(--foreground-secondary);
+}
+.btn-red {
+  @apply bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded cursor-pointer;
+}
+.btn2:hover {
+  background-color: var(--foreground-secondary-dark);
+}
+
+.input {
+  background-color: var(--background-secondary);
+  @apply text-white p-2 m-1 rounded min-w-full md:min-w-9/10;
+}
+.input-label {
+  @apply block ml-2;
+}
+.select {
+  @apply py-2.5;
 }
