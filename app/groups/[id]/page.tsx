@@ -1,5 +1,6 @@
 'use client';
 import DeviceList from '@/components/DeviceList';
+import LoadingWheel from '@/components/LoadingWheel';
 import Modal from '@/components/Modal';
 import { deleteCookie, getCookie, hasCookie, setCookie } from 'cookies-next';
 import { useRouter } from 'next/navigation';
@@ -14,11 +15,12 @@ const Page = ({
 
     const [group, setGroup] = useState({id: 0, name: '', description: ''});
     const [devices, setDevices] = useState([{id: 0, group_id: 0, name: '', ip: '', unit: '', oid: '', backup_oid: ''}]);
+    const [devicesLoading, setDevicesLoading] = useState(true);
     const [openForm, setOpenForm] = useState(false);
     const [openNewDeviceForm, setOpenNewDeviceForm] = useState(false);
     const [openDeleteForm, setOpenDeleteForm] = useState(false);
     const [newDevice, setNewDevice] = useState({group_id: group.id, name: '', ip: '', unit: '', oid: '', backup_oid: ''});
-    const [refresh, setRefresh] = useState(0);
+    const [refresh, setRefresh] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -62,6 +64,12 @@ const Page = ({
           setDevices(data);
 
           setCookie(`groupDevices${id}`, data);
+
+          setDevicesLoading(false);
+
+          // setTimeout(() => {
+          //   setRefresh(!refresh);
+          // }, 5000);
 
       }catch(err){
           console.log(err);
@@ -181,11 +189,13 @@ const Page = ({
     <div>
       
       <div className='flex'>
+        {group.id ? 
         <div className='grid grid-flow-row-dense grid-cols-1 md:grid-cols-2 text-center mt-5 mb-3 flex-grow'>
-          <p>Group ID: <i>{group.id}</i></p>
-          <p>Name: <i>{group.name}</i></p>
-          <p>Description: <i>{group.description}</i></p>
-        </div>
+          <p className='text-left ml-10 md:ml-50'>Group ID: <i>{group.id}</i></p>
+          <p className='text-left ml-10 md:ml-50'>Name: <i>{group.name}</i></p>
+          <p className='text-left ml-10 md:ml-50'>Description: <i>{group.description}</i></p>
+        </div> : 
+        <LoadingWheel size='40' />}
         <div className='content-center pr-3'>
           <button className='btn-red ' onClick={() => {setOpenDeleteForm(true);}}>
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="size-6">
@@ -224,7 +234,7 @@ const Page = ({
         </div>
       </Modal>
 
-      <button className='btn m-3' onClick={() => {setOpenForm(true)}} >
+      <button className='btn m-3 float-right' onClick={() => {setOpenForm(true)}} >
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6">
           <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.863 4.487Zm0 0L19.5 7.125" />
         </svg>
@@ -239,7 +249,7 @@ const Page = ({
         </svg>
       </button>
       </h1>
-      <DeviceList devices={devices} />
+      <DeviceList devices={devices} loading={devicesLoading} />
 
       <Modal open={openNewDeviceForm} setOpen={setOpenNewDeviceForm} title={`Create new device in group '${group.name}'`} >
         <div className='grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4'>

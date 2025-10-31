@@ -8,6 +8,7 @@ import { useEffect, useState } from "react";
 export default function Home() {
   
   const [groups, setGroups] = useState([{id: 0, name: '', description: ''}]);
+  const [groupsLoading, setGroupsLoading] = useState(true);
 
   const [newGroup, setNewGroup] = useState({name: '', description: ''});
 
@@ -35,6 +36,8 @@ export default function Home() {
             setGroups(data);
 
             setCookie('groups', data);
+
+            setGroupsLoading(false);
             
         }catch(err){
           console.log(err);
@@ -76,11 +79,6 @@ export default function Home() {
 
   return (
     <>
-    <header className="bg-primary text-white h-12" >
-            <div className="text-center w-full text-2xl pt-1">
-                <h1>SNMP Monitor</h1>
-            </div>
-        </header>
     <main className="p-5">
 
       <h1 className="text-3xl text-center m-3">Groups
@@ -90,7 +88,7 @@ export default function Home() {
         </svg>
       </button>
       </h1>
-      <GroupList groups={groups} />
+      <GroupList groups={groups} loading={groupsLoading} />
     </main>
     <Modal open={openForm} setOpen={setOpenForm} >
       <div className='grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4'>

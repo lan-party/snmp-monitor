@@ -1,8 +1,13 @@
 'use client';
+import LoadingWheel from '@/components/LoadingWheel';
 import Modal from '@/components/Modal';
 import { deleteCookie, getCookie, hasCookie, setCookie } from 'cookies-next';
+import dynamic from 'next/dynamic';
 import { useRouter } from 'next/navigation';
 import React, { useEffect, useState } from 'react'
+const Plot = dynamic(() => import('react-plotly.js'), {
+      ssr: false, // This ensures the component is only loaded on the client-side
+    });
 
 const Page = ({
   params,
@@ -16,6 +21,8 @@ const Page = ({
 
   const [openForm, setOpenForm] = useState(false);
   const [openDeleteForm, setOpenDeleteForm] = useState(false);
+
+  const [plotData, setPlotData] = useState({x: [new Date()], y: ['']});
   
 
   useEffect(() => {
@@ -43,6 +50,29 @@ const Page = ({
         setDevice(data[0]);
 
         setCookie(`device${id}`, data[0]);
+
+      }catch(err){
+          console.log(err);
+      }
+
+      try{
+
+          // Get log data
+          const data: [{device_id: number, ts: Date, value: string}] = await (
+            await fetch(
+              `/api/log/${id}`, 
+              {method: 'GET', headers: {'Content-Type': 'application/json'}}
+            )
+          ).json();
+
+          const plotDataTmp: {x: Date[], y: string[]} = {x: [], y: []};
+          for(const row of data){
+            plotDataTmp.x.push(row.ts);
+            plotDataTmp.y.push(row.value);
+          }
+          console.log(plotDataTmp);
+
+          setPlotData(plotDataTmp);
 
       }catch(err){
           console.log(err);
@@ -125,20 +155,22 @@ const Page = ({
 
   return (
     <>
-      <div className='grid grid-flow-row-dense grid-cols-1 md:grid-cols-2 text-center mt-5 mb-3'>
-        <p className='mb-2 md:mb-0'>Device ID: <i>{device.id}</i></p>
-        <p>Group ID: <i>{device.group_id}</i></p>
-      </div>
-      <hr />
+      {device.id ? <>
+        <div className='grid grid-flow-row-dense grid-cols-1 md:grid-cols-2 text-center mt-5 mb-3'>
+          <p className='mb-2 md:mb-0'>Device ID: <i>{device.id}</i></p>
+          <p>Group ID: <i>{device.group_id}</i></p>
+        </div>
+        <hr />
+      </> : <LoadingWheel size='40' />}
       <div className='flex'>
-        <div className='flex-grow grid grid-flow-row-dense grid-cols-1 md:grid-cols-3 text-center mt-3'>
+        {device.id ? <div className='flex-grow grid grid-flow-row-dense grid-cols-1 md:grid-cols-3 text-center mt-3'>
           <p>Name: <i>{device.name}</i></p>
           <p>IP Address: <i>{device.ip}</i></p>
           <p>Unit String: <i>{device.unit}</i></p>
           <p>OID: <i>{device.oid}</i></p>
           <p>Backup OID: <i>{device.backup_oid}</i></p>
-        </div>
-        <div className='content-center pr-3'>
+        </div> : <div className='flex-grow grid grid-flow-row-dense grid-cols-1 md:grid-cols-3 text-center mt-3'></div>}
+        <div className='content-center pr-3 float-right'>
           <button className='btn-red ' onClick={() => {setOpenDeleteForm(true);}}>
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="size-6">
               <path fillRule="evenodd" d="M16.5 4.478v.227a48.816 48.816 0 0 1 3.878.512.75.75 0 1 1-.256 1.478l-.209-.035-1.005 13.07a3 3 0 0 1-2.991 2.77H8.084a3 3 0 0 1-2.991-2.77L4.087 6.66l-.209.035a.75.75 0 0 1-.256-1.478A48.567 48.567 0 0 1 7.5 4.705v-.227c0-1.564 1.213-2.9 2.816-2.951a52.662 52.662 0 0 1 3.369 0c1.603.051 2.815 1.387 2.815 2.951Zm-6.136-1.452a51.196 51.196 0 0 1 3.273 0C14.39 3.05 15 3.684 15 4.478v.113a49.488 49.488 0 0 0-6 0v-.113c0-.794.609-1.428 1.364-1.452Zm-.355 5.945a.75.75 0 1 0-1.5.058l.347 9a.75.75 0 1 0 1.499-.058l-.346-9Zm5.48.058a.75.75 0 1 0-1.498-.058l-.347 9a.75.75 0 0 0 1.5.058l.345-9Z" clipRule="evenodd" />
@@ -160,7 +192,7 @@ const Page = ({
       </Modal>
       
 
-      <button className='btn m-3' onClick={() => {setOpenForm(true)}} >
+      <button className='btn m-3 float-right' onClick={() => {setOpenForm(true)}} >
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6">
           <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.863 4.487Zm0 0L19.5 7.125" />
         </svg>
@@ -204,6 +236,29 @@ const Page = ({
           </div>
         </div>
       </Modal>
+
+      <div className='w-full content-center px-auto' >
+        <Plot data={[
+
+          {
+
+            x: plotData.x,
+
+            y: plotData.y,
+
+            type: 'scatter',
+
+            mode: 'lines+markers',
+
+            marker: {color: 'red'},
+
+          }
+
+        ]}
+
+        layout={ {width: screen.width, height: 400, title: {text: `${device.name} - ${device.ip} `}} } />
+        
+      </div>
     </>
   )
 }
