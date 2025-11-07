@@ -256,7 +256,7 @@ const Page = ({
 
         ]}
 
-        layout={ {width: screen.width, height: 400, title: {text: `${device.name} - ${device.ip} `}} } />
+        layout={ {width: screen ? screen.width : 400, height: 400, title: {text: `${device.name} - ${device.ip} `}} } />
         
       </div>
     </>
