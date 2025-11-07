@@ -2,6 +2,7 @@ const { createServer } = require('https');
 var fs = require('fs');
 const { parse } = require('url');
 const next = require('next');
+require('dotenv').config();
 
 const dev = process.env.NODE_ENV !== 'production';
 const port = 8444;
